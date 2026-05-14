@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="panel" th:remove="tag">
+    <div class="pd-header">
+        <span class="pd-title" th:if="${pod != null}" th:text="|Pod: ${pod.name()}|"></span>
+        <span class="pd-title" th:if="${pod == null}" th:text="|Pod: ${podName}|"></span>
+        <button class="pd-close" type="button"
+                onclick="var p=document.getElementById('pod-detail-panel');p.innerHTML='';p.classList.remove('open');">×</button>
+    </div>
+
+    <div th:if="${error}" class="error" style="padding: 1rem;" th:text="${error}"></div>
+
+    <div th:if="${pod != null}" class="pd-body">
+        <section th:if="${!pod.initContainers().isEmpty()}">
+            <h3 class="pd-section">Init Containers</h3>
+            <div th:each="c : ${pod.initContainers()}" class="pd-container">
+                <div class="pd-container-name">
+                    <span th:text="${c.name()}"></span>
+                    <span class="status-pill"
+                          th:classappend="${c.statusClass()}"
+                          th:text="${c.status()}"></span>
+                </div>
+                <dl class="pd-fields">
+                    <dt>Image</dt>
+                    <dd><code th:text="${c.image()}"></code></dd>
+
+                    <dt>Environment</dt>
+                    <dd>
+                        <div th:if="${c.env().isEmpty()}" class="pd-empty">—</div>
+                        <div th:each="e : ${c.env()}" class="pd-env-row">
+                            <span class="pd-env-name" th:text="${e.name()}"></span>
+                            <span class="pd-env-sep">=</span>
+                            <span th:if="${e.value() != null}"
+                                  class="pd-env-value"
+                                  th:text="${e.value()}"></span>
+                            <span th:if="${e.value() == null}"
+                                  class="pd-env-value from-ref"
+                                  th:text="${e.source()}"></span>
+                        </div>
+                    </dd>
+
+                    <dt>Mounts</dt>
+                    <dd>
+                        <div th:if="${c.mounts().isEmpty()}" class="pd-empty">—</div>
+                        <div th:unless="${c.mounts().isEmpty()}" class="pd-mount-list">
+                            <div th:each="m : ${c.mounts()}" class="pd-mount-row">
+                                <code th:text="${m.path()}"></code>
+                                <span class="pd-mount-arrow">←</span>
+                                <span class="pd-mount-source" th:text="${m.source()}"></span>
+                                <span th:if="${m.readOnly()}" class="pd-mount-ro" title="read-only">ro</span>
+                                <span th:unless="${m.readOnly()}"></span>
+                            </div>
+                        </div>
+                    </dd>
+                </dl>
+            </div>
+        </section>
+
+        <section th:if="${!pod.containers().isEmpty()}">
+            <h3 class="pd-section">Containers</h3>
+            <div th:each="c : ${pod.containers()}" class="pd-container">
+                <div class="pd-container-name">
+                    <span th:text="${c.name()}"></span>
+                    <span class="status-pill"
+                          th:classappend="${c.statusClass()}"
+                          th:text="${c.status()}"></span>
+                </div>
+                <dl class="pd-fields">
+                    <dt>Image</dt>
+                    <dd><code th:text="${c.image()}"></code></dd>
+
+                    <dt>Environment</dt>
+                    <dd>
+                        <div th:if="${c.env().isEmpty()}" class="pd-empty">—</div>
+                        <div th:each="e : ${c.env()}" class="pd-env-row">
+                            <span class="pd-env-name" th:text="${e.name()}"></span>
+                            <span class="pd-env-sep">=</span>
+                            <span th:if="${e.value() != null}"
+                                  class="pd-env-value"
+                                  th:text="${e.value()}"></span>
+                            <span th:if="${e.value() == null}"
+                                  class="pd-env-value from-ref"
+                                  th:text="${e.source()}"></span>
+                        </div>
+                    </dd>
+
+                    <dt>Mounts</dt>
+                    <dd>
+                        <div th:if="${c.mounts().isEmpty()}" class="pd-empty">—</div>
+                        <div th:unless="${c.mounts().isEmpty()}" class="pd-mount-list">
+                            <div th:each="m : ${c.mounts()}" class="pd-mount-row">
+                                <code th:text="${m.path()}"></code>
+                                <span class="pd-mount-arrow">←</span>
+                                <span class="pd-mount-source" th:text="${m.source()}"></span>
+                                <span th:if="${m.readOnly()}" class="pd-mount-ro" title="read-only">ro</span>
+                                <span th:unless="${m.readOnly()}"></span>
+                            </div>
+                        </div>
+                    </dd>
+                </dl>
+            </div>
+        </section>
+    </div>
+</div>
+</body>
+</html>

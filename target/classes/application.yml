@@ -1,0 +1,26 @@
+server:
+  port: 8842
+
+spring:
+  application:
+    name: cluster-cockpit
+  thymeleaf:
+    cache: false
+
+cockpit:
+  cluster-connections:
+    root: C:/dev/vibes/vi_ux_config/cluster-connections
+    default-connection: aks-ux-teams-dev-002
+    # Allowed connections (filter + optional alias). Keys are folder names (preserved order);
+    # values are the display alias shown in the rail. Leave value blank to fall back to the
+    # auto-trimmed common-prefix label. Leave the whole map empty to show all connections.
+    allowed:
+      aks-ux-teams-dev-002: dev-002
+      vibes-ux-dev-003: dev-003
+      vibes-vpi-tst-001: tst-001
+      vibes-ux-integration-tst-001: integration-tst-001
+  namespaces:
+    # If set, the namespace combobox is restricted to this list (intersected with what the cluster reports).
+    # Leave empty to show all namespaces.
+    allowed: ["*", "vibes-integrated-planning", "security", "production"]
+    default-namespace: vibes-integrated-planning

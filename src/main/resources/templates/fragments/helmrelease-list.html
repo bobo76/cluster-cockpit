@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="page" id="helmrelease-page"
+     hx-get="/helmreleases" hx-include="#hr-ns-select"
+     hx-trigger="cluster-changed from:body"
+     hx-target="#helmrelease-page"
+     hx-swap="outerHTML">
+
+    <div class="content-header">
+        <h2>HelmReleases</h2>
+        <span class="count" th:if="${releases != null}" th:text="|${releases.size()} items|"></span>
+        <span class="spacer"></span>
+        <label>
+            Namespace:
+            <select name="namespace" id="hr-ns-select"
+                    hx-get="/helmreleases"
+                    hx-include="this"
+                    hx-target="#helmrelease-page"
+                    hx-swap="outerHTML"
+                    hx-trigger="change">
+                <option value="*" th:selected="${namespace == '*'}">— all namespaces —</option>
+                <option th:each="ns : ${namespaces}"
+                        th:value="${ns}"
+                        th:text="${ns}"
+                        th:selected="${ns == namespace}"></option>
+            </select>
+        </label>
+    </div>
+
+    <div th:replace="~{fragments/helmrelease-list :: table}"></div>
+</div>
+
+<div th:fragment="table" id="helmrelease-table"
+     hx-get="/helmreleases" hx-include="#hr-ns-select"
+     hx-target="#helmrelease-table" hx-swap="outerHTML"
+     hx-select="#helmrelease-table" hx-trigger="every 5s">
+    <div th:if="${error}" class="error" th:text="${error}"></div>
+
+    <table th:if="${releases != null}">
+        <thead>
+        <tr>
+            <th th:if="${namespace == '*'}">Namespace</th>
+            <th>Name</th>
+            <th>Chart</th>
+            <th>Version</th>
+            <th>Status</th>
+            <th>Message</th>
+            <th>Age</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="r : ${releases}">
+            <td th:if="${namespace == '*'}" th:text="${r.namespace()}"></td>
+            <td th:text="${r.name()}"></td>
+            <td th:text="${r.chart()}"></td>
+            <td th:text="${r.version()}"></td>
+            <td><span th:class="${r.status().cssClass()}" th:text="${r.status().label()}"></span></td>
+            <td class="message-cell">
+                <span class="message-tooltip" th:if="${r.message() != null and !r.message().isEmpty()}"
+                      th:attr="data-tooltip=${r.message()}">
+                    <span class="message-text" th:text="${r.message()}"></span>
+                </span>
+            </td>
+            <td th:text="${r.age()}"></td>
+            <td>
+                <form th:if="${!r.suspended()}"
+                      hx-post="/helmreleases/suspend"
+                      hx-target="#helmrelease-table"
+                      hx-swap="outerHTML"
+                      th:attr="hx-confirm=|Suspend HelmRelease ${r.namespace()}/${r.name()}?|"
+                      style="display:inline; margin:0;">
+                    <input type="hidden" name="namespace" th:value="${r.namespace()}"/>
+                    <input type="hidden" name="name" th:value="${r.name()}"/>
+                    <button type="submit" class="action-btn suspend">Suspend</button>
+                </form>
+                <form th:if="${r.suspended()}"
+                      hx-post="/helmreleases/resume"
+                      hx-target="#helmrelease-table"
+                      hx-swap="outerHTML"
+                      th:attr="hx-confirm=|Resume HelmRelease ${r.namespace()}/${r.name()}?|"
+                      style="display:inline; margin:0;">
+                    <input type="hidden" name="namespace" th:value="${r.namespace()}"/>
+                    <input type="hidden" name="name" th:value="${r.name()}"/>
+                    <button type="submit" class="action-btn resume">Resume</button>
+                </form>
+            </td>
+        </tr>
+        <tr th:if="${releases != null and releases.isEmpty()}">
+            <td colspan="8" style="color: #666;">no helm releases</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

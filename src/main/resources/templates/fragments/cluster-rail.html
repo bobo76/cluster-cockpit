@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside th:fragment="rail" id="cluster-rail" class="cluster-rail">
+    <div class="rail-title">Clusters</div>
+    <ul class="rail-list">
+        <li th:each="c : ${connections}"
+            th:classappend="${c.name() == selectedConnection} ? ' active' : ''"
+            class="rail-tile"
+            th:title="${c.name()}">
+            <form hx-post="/connections/select"
+                  hx-target="#cluster-rail"
+                  hx-swap="outerHTML">
+                <input type="hidden" name="connection" th:value="${c.name()}"/>
+                <button type="submit" class="rail-button">
+                    <span class="rail-label" th:text="${c.label()}"></span>
+                </button>
+            </form>
+        </li>
+        <li th:if="${connections.isEmpty()}" class="rail-empty">no connections</li>
+    </ul>
+</aside>
+</body>
+</html>
