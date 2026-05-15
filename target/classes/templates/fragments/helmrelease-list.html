@@ -9,10 +9,13 @@
 
     <div class="content-header">
         <h2>HelmReleases</h2>
-        <span class="count" th:if="${releases != null}" th:text="|${releases.size()} items|"></span>
+        <span class="count" th:if="${releases != null}">
+            <span th:text="|${releases.size()} items|"></span>
+            <span class="heartbeat" title="auto-refresh every 5s"></span>
+        </span>
         <span class="spacer"></span>
         <label>
-            Namespace:
+            Namespace
             <select name="namespace" id="hr-ns-select"
                     hx-get="/helmreleases"
                     hx-include="this"
@@ -87,8 +90,8 @@
                 </form>
             </td>
         </tr>
-        <tr th:if="${releases != null and releases.isEmpty()}">
-            <td colspan="8" style="color: #666;">no helm releases</td>
+        <tr th:if="${releases != null and releases.isEmpty()}" class="empty-row">
+            <td colspan="8">— no helm releases in scope —</td>
         </tr>
         </tbody>
     </table>

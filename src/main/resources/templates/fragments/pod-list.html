@@ -9,12 +9,16 @@
 
     <div class="content-header">
         <h2>Pods</h2>
-        <span class="count" th:if="${pods != null}" th:text="|${pods.size()} items|"></span>
+        <span class="count" th:if="${pods != null}">
+            <span th:text="|${pods.size()} items|"></span>
+            <span class="heartbeat" title="auto-refresh every 5s"></span>
+        </span>
         <span class="spacer"></span>
+        <span class="kbd" title="press / to focus filter">/</span>
         <button type="button" class="action-btn" id="pause-refresh-btn"
                 onclick="togglePodRefresh(this)">Pause</button>
         <label>
-            Namespace:
+            Namespace
             <select name="namespace"
                     hx-get="/pods"
                     hx-include="this"
@@ -56,10 +60,18 @@
         <tbody>
         <tr th:each="p : ${pods}">
             <td>
-                <button type="button" class="action-btn"
+                <button type="button" class="action-btn icon"
                         title="Details"
                         th:attr="data-detail-url=|/pods/${p.namespace()}/${p.name()}/detail|"
-                        onclick="openPodDetail(this.dataset.detailUrl)">ℹ</button>
+                        onclick="openPodDetail(this.dataset.detailUrl)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                         aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"/>
+                        <line x1="12" y1="10" x2="12" y2="16"/>
+                        <circle cx="12" cy="7.5" r="0.6" fill="currentColor"/>
+                    </svg>
+                </button>
             </td>
             <td th:if="${namespace == '*'}" th:text="${p.namespace()}"></td>
             <td th:text="${p.name()}"></td>
@@ -68,8 +80,8 @@
             <td th:text="${p.restarts()}"></td>
             <td th:text="${p.age()}"></td>
         </tr>
-        <tr th:if="${pods != null and pods.isEmpty()}">
-            <td th:attr="colspan=${namespace == '*' ? 7 : 6}" style="color: #666;">no pods</td>
+        <tr th:if="${pods != null and pods.isEmpty()}" class="empty-row">
+            <td th:attr="colspan=${namespace == '*' ? 7 : 6}">— no pods in scope —</td>
         </tr>
         </tbody>
     </table>

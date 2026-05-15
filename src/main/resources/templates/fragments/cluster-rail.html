@@ -2,6 +2,11 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
 <aside th:fragment="rail" id="cluster-rail" class="cluster-rail">
+    <div class="rail-brand">
+        <div class="wordmark">COCKPIT</div>
+        <div class="tagline"
+             th:text="${selectedConnection != null} ? ${selectedConnection} : 'no cluster'"></div>
+    </div>
     <div class="rail-title">Clusters</div>
     <ul class="rail-list">
         <li th:each="c : ${connections}"
