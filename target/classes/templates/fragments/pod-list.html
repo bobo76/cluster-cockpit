@@ -14,11 +14,10 @@
             <span class="heartbeat" title="auto-refresh every 5s"></span>
         </span>
         <span class="spacer"></span>
-        <span class="kbd" title="press / to focus filter">/</span>
         <button type="button" class="action-btn" id="pause-refresh-btn"
                 onclick="togglePodRefresh(this)">Pause</button>
         <label>
-            Namespace
+            Namespace <span class="kbd" title="Press / to focus namespace">/</span>
             <select name="namespace"
                     hx-get="/pods"
                     hx-include="this"

@@ -243,6 +243,12 @@
             from { transform: scaleX(1); opacity: 1; }
             to   { transform: scaleX(0); opacity: 0.4; }
         }
+        .heartbeat.paused::after {
+            animation-play-state: paused;
+        }
+        .heartbeat.reset::after {
+            animation: none;
+        }
 
         /* ------------------------- TABLE ------------------------- */
         table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
@@ -505,6 +511,73 @@
         }
         #pod-detail-panel .pd-empty { color: var(--ink-3); font-style: italic; }
 
+        /* ------------------------- DEPLOY MODAL ------------------------- */
+        dialog#deploy-modal {
+            background: var(--bg-2);
+            border: 1px solid var(--line);
+            color: var(--ink-0);
+            padding: 0;
+            min-width: 480px;
+            max-width: 600px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.7);
+        }
+        dialog#deploy-modal::backdrop {
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(2px);
+        }
+        .modal-header {
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.85rem 1.1rem;
+            background: var(--bg-3);
+            border-bottom: 1px solid var(--line);
+        }
+        .modal-title {
+            flex: 1;
+            font-family: var(--display);
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.04em;
+            color: var(--ink-0);
+        }
+        .modal-form {
+            padding: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+        .modal-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .modal-field label {
+            font-size: 0.66rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--ink-3);
+        }
+        .modal-field select,
+        .modal-field input[type=text] {
+            padding: 0.4rem 0.6rem;
+            background: var(--bg-1);
+            color: var(--ink-0);
+            border: 1px solid var(--line);
+            font-family: var(--mono);
+            font-size: 0.82rem;
+            width: 100%;
+        }
+        .modal-field select:focus,
+        .modal-field input[type=text]:focus {
+            outline: none;
+            border-color: var(--hud);
+        }
+        .modal-actions {
+            display: flex; gap: 0.6rem;
+            justify-content: flex-end;
+            padding-top: 0.4rem;
+            border-top: 1px solid var(--line);
+        }
+
         /* keyboard hint chip */
         .kbd {
             display: inline-block;
@@ -521,6 +594,7 @@
 <body>
 <div id="toast-container"></div>
 <aside id="pod-detail-panel"></aside>
+<dialog id="deploy-modal"></dialog>
 <div class="shell">
     <div th:replace="~{fragments/cluster-rail :: rail}"></div>
     <div th:replace="~{fragments/resource-nav :: nav}"></div>
@@ -547,10 +621,24 @@
             if (btn && window.__podRefreshPaused) {
                 btn.textContent = 'Resume';
             }
+            if (e.target && e.target.id === 'pod-table' && !window.__podRefreshPaused) {
+                var hb = document.querySelector('.heartbeat');
+                if (hb) {
+                    hb.classList.add('reset');
+                    hb.offsetHeight; // force reflow so ::after loses the animation
+                    hb.classList.remove('reset');
+                }
+            }
         });
         document.body.addEventListener('htmx:afterSwap', function (e) {
             if (e.target && e.target.id === 'pod-detail-panel') {
                 e.target.classList.toggle('open', e.target.children.length > 0);
+            }
+            if (e.target && e.target.id === 'deploy-modal') {
+                var modal = document.getElementById('deploy-modal');
+                if (modal && modal.children.length > 0) {
+                    modal.showModal();
+                }
             }
         });
         document.body.addEventListener('htmx:beforeRequest', function (e) {
@@ -567,6 +655,9 @@
                     p.classList.add('open');
                 });
         };
+        window.openDeployModal = function (url) {
+            htmx.ajax('GET', url, {target: '#deploy-modal', swap: 'innerHTML'});
+        };
         window.closePodDetail = function () {
             var p = document.getElementById('pod-detail-panel');
             if (p) { p.classList.remove('open'); p.innerHTML = ''; }
@@ -574,6 +665,15 @@
         window.togglePodRefresh = function (btn) {
             window.__podRefreshPaused = !window.__podRefreshPaused;
             btn.textContent = window.__podRefreshPaused ? 'Resume' : 'Pause';
+            var hb = document.querySelector('.heartbeat');
+            if (hb) {
+                hb.classList.toggle('paused', window.__podRefreshPaused);
+                if (!window.__podRefreshPaused) {
+                    hb.classList.add('reset');
+                    hb.offsetHeight;
+                    hb.classList.remove('reset');
+                }
+            }
         };
         document.addEventListener('DOMContentLoaded', syncNav);
 

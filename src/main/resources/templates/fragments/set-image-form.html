@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="form">
+    <div class="modal-header">
+        <span class="modal-title">Set image — <span th:text="${deploymentName}"></span></span>
+        <button type="button" class="pd-close" onclick="document.getElementById('deploy-modal').close()">✕</button>
+    </div>
+    <div th:if="${error}" class="error" style="padding: 0.75rem 1.1rem;" th:text="${error}"></div>
+    <form th:if="${containers != null}"
+          hx-post="/deployments/set-image"
+          hx-target="#deployment-table"
+          hx-swap="outerHTML"
+          hx-on--after-request="if(event.detail.successful) document.getElementById('deploy-modal').close()"
+          class="modal-form">
+        <input type="hidden" name="namespace" th:value="${namespace}"/>
+        <input type="hidden" name="name" th:value="${deploymentName}"/>
+        <input type="hidden" name="imageBase" id="si-image-base" th:value="${defaultBase}"/>
+
+        <!-- single container: static label, no picker -->
+        <div th:if="${!multiContainer}" class="modal-field">
+            <label>Container</label>
+            <code style="display:block;padding:0.4rem 0.6rem;background:var(--bg-0);border:1px solid var(--line-soft);color:var(--ink-1);font-size:0.82rem;font-family:var(--mono)"
+                  th:text="${containers.getFirst().name()}"></code>
+            <input type="hidden" name="container" th:value="${containers.getFirst().name()}"/>
+        </div>
+
+        <!-- multiple containers: show picker -->
+        <div th:if="${multiContainer}" class="modal-field">
+            <label>Container</label>
+            <select name="container" id="si-container" onchange="siUpdateBase(this)">
+                <option th:each="c : ${containers}"
+                        th:value="${c.name()}"
+                        th:attr="data-base=${c.imageBase()},data-tag=${c.imageTag()}"
+                        th:text="${c.name()}"></option>
+            </select>
+        </div>
+
+        <div class="modal-field">
+            <label>Base <span style="color:var(--ink-3);text-transform:none;letter-spacing:0">(read-only)</span></label>
+            <code id="si-base-display" style="display:block;padding:0.4rem 0.6rem;background:var(--bg-0);border:1px solid var(--line-soft);color:var(--ink-2);font-size:0.78rem;word-break:break-all;font-family:var(--mono)"></code>
+        </div>
+        <div class="modal-field">
+            <label>Tag</label>
+            <input type="text" name="tag" id="si-tag" th:value="${defaultTag}" required autocomplete="off"/>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="action-btn"
+                    onclick="document.getElementById('deploy-modal').close()">Cancel</button>
+            <button type="submit" class="action-btn resume">Apply</button>
+        </div>
+    </form>
+    <script>
+        (function () {
+            function siUpdateBase(select) {
+                var opt = select.options[select.selectedIndex];
+                document.getElementById('si-base-display').textContent = opt.dataset.base;
+                document.getElementById('si-image-base').value = opt.dataset.base;
+                document.getElementById('si-tag').value = opt.dataset.tag;
+            }
+            window.siUpdateBase = siUpdateBase;
+            var sel = document.getElementById('si-container');
+            if (sel) {
+                siUpdateBase(sel);
+            } else {
+                var baseEl = document.getElementById('si-image-base');
+                var displayEl = document.getElementById('si-base-display');
+                if (baseEl && displayEl) { displayEl.textContent = baseEl.value; }
+            }
+        })();
+    </script>
+</div>
+</body>
+</html>

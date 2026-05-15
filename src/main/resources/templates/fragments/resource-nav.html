@@ -11,7 +11,13 @@
            hx-swap="innerHTML"
            hx-push-url="true"
            href="#">Pods</a>
-        <span class="nav-item disabled" title="not yet">Deployments</span>
+        <a class="nav-item"
+           data-path="/deployments"
+           hx-get="/deployments"
+           hx-target="#content"
+           hx-swap="innerHTML"
+           hx-push-url="true"
+           href="#">Deployments</a>
     </div>
     <div class="nav-group">
         <div class="nav-group-title">Storage</div>

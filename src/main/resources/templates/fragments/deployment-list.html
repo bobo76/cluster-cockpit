@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="page" id="deployment-page"
+     hx-get="/deployments" hx-include="#dep-ns-select"
+     hx-trigger="cluster-changed from:body"
+     hx-target="#deployment-page"
+     hx-swap="outerHTML">
+
+    <div class="content-header">
+        <h2>Deployments</h2>
+        <span class="count" th:if="${deployments != null}">
+            <span th:text="|${deployments.size()} items|"></span>
+            <span class="heartbeat" title="auto-refresh every 5s"></span>
+        </span>
+        <span class="spacer"></span>
+        <label>
+            Namespace <span class="kbd" title="Press / to focus namespace">/</span>
+            <select name="namespace" id="dep-ns-select"
+                    hx-get="/deployments"
+                    hx-include="this"
+                    hx-target="#deployment-page"
+                    hx-swap="outerHTML"
+                    hx-trigger="change">
+                <option value="*" th:selected="${namespace == '*'}">— all namespaces —</option>
+                <option th:each="ns : ${namespaces}"
+                        th:value="${ns}"
+                        th:text="${ns}"
+                        th:selected="${ns == namespace}"></option>
+            </select>
+        </label>
+    </div>
+
+    <div th:replace="~{fragments/deployment-list :: table}"></div>
+</div>
+
+<div th:fragment="table" id="deployment-table"
+     hx-get="/deployments" hx-include="#dep-ns-select"
+     hx-target="#deployment-table" hx-swap="outerHTML"
+     hx-select="#deployment-table" hx-trigger="every 5s">
+    <div th:if="${error}" class="error" th:text="${error}"></div>
+
+    <table th:if="${deployments != null}">
+        <thead>
+        <tr>
+            <th th:if="${namespace == '*'}">Namespace</th>
+            <th>Name</th>
+            <th>Ready</th>
+            <th>Up-to-date</th>
+            <th>Available</th>
+            <th>Age</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="d : ${deployments}">
+            <td th:if="${namespace == '*'}" th:text="${d.namespace()}"></td>
+            <td th:text="${d.name()}"></td>
+            <td><span class="status-pill" th:classappend="${d.statusClass()}" th:text="${d.ready()}"></span></td>
+            <td th:text="${d.upToDate()}"></td>
+            <td th:text="${d.available()}"></td>
+            <td th:text="${d.age()}"></td>
+            <td>
+                <button type="button" class="action-btn"
+                        th:attr="data-form-url=|/deployments/${d.namespace()}/${d.name()}/set-image-form|"
+                        onclick="openDeployModal(this.dataset.formUrl)">Set image…</button>
+            </td>
+        </tr>
+        <tr th:if="${deployments != null and deployments.isEmpty()}" class="empty-row">
+            <td th:attr="colspan=${namespace == '*' ? 7 : 6}">— no deployments in scope —</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
