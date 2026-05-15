@@ -19,18 +19,22 @@ public record DeploymentRow(
         try {
             int readyCount = Integer.parseInt(parts[0].trim());
             int desired = Integer.parseInt(parts[1].trim());
-            if (desired == 0) {
-                return "neutral";
-            }
-            if (readyCount >= desired) {
-                return "ok";
-            }
-            if (readyCount == 0) {
-                return "bad";
-            }
-            return "warn";
+            return classify(readyCount, desired);
         } catch (NumberFormatException e) {
             return "unknown";
         }
+    }
+
+    private String classify(int readyCount, int desired) {
+        if (desired == 0) {
+            return "neutral";
+        }
+        if (readyCount >= desired) {
+            return "ok";
+        }
+        if (readyCount == 0) {
+            return "bad";
+        }
+        return "warn";
     }
 }

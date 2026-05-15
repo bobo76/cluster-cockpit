@@ -1,9 +1,10 @@
 {
   "permissions": {
     "allow": [
+      "Bash(Format-Table FullName)",
       "Bash(Get-ChildItem -Path \"C:\\\\dev\\\\cluster-cockpit\" -Recurse -Directory)",
-      "Bash(Select-Object -First 20)",
-      "Bash(Format-Table FullName)"
+      "Bash(ls org/springframework/boot/spring-boot-starter-validation/)",
+      "Read(//c/Users/cabprou/.m2/repository/**)"
     ]
   }
 }

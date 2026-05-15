@@ -4,6 +4,8 @@ import com.cockpit.clustercockpit.kube.DeploymentService;
 import com.cockpit.clustercockpit.kube.NamespaceSelectionService;
 import com.cockpit.clustercockpit.kube.NamespaceService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -42,6 +44,30 @@ public class DeploymentController {
                                Model model) {
         model.addAttribute("namespace", namespace);
         model.addAttribute("deploymentName", name);
+        populateContainers(namespace, name, model);
+        return "fragments/set-image-form :: form";
+    }
+
+    record SetImageRequest(String namespace, String name, String container,
+                           String imageBase, String tag) {}
+
+    @PostMapping("/set-image")
+    public String setImage(@Valid SetImageRequest req,
+                           HttpServletResponse response,
+                           Model model) {
+        try {
+            deploymentService.setImage(req.namespace(), req.name(), req.container(),
+                req.imageBase() + ":" + req.tag());
+            response.setHeader("HX-Trigger-After-Settle",
+                buildToastJson("Image updated for " + req.name() + " / " + req.container()));
+        } catch (RuntimeException e) {
+            model.addAttribute("error", e.getMessage());
+        }
+        populate(namespaceSelection.getSelected(), model);
+        return "fragments/deployment-list :: table";
+    }
+
+    private void populateContainers(String namespace, String name, Model model) {
         try {
             var containers = deploymentService.getContainers(namespace, name);
             model.addAttribute("containers", containers);
@@ -53,50 +79,42 @@ public class DeploymentController {
         } catch (RuntimeException e) {
             model.addAttribute("error", e.getMessage());
         }
-        return "fragments/set-image-form :: form";
     }
 
-    @PostMapping("/set-image")
-    public String setImage(@RequestParam("namespace") String namespace,
-                           @RequestParam("name") String name,
-                           @RequestParam("container") String container,
-                           @RequestParam("imageBase") String imageBase,
-                           @RequestParam("tag") String tag,
-                           HttpServletResponse response,
-                           Model model) {
-        try {
-            deploymentService.setImage(namespace, name, container, imageBase + ":" + tag);
-            response.setHeader("HX-Trigger-After-Settle",
-                toastTrigger("Image updated for " + name + " / " + container));
-        } catch (RuntimeException e) {
-            model.addAttribute("error", e.getMessage());
-        }
-        populate(namespaceSelection.getSelected(), model);
-        return "fragments/deployment-list :: table";
-    }
-
-    private String toastTrigger(String message) {
+    private String buildToastJson(String message) {
         String escaped = message.replace("\\", "\\\\").replace("\"", "\\\"");
         return "{\"showToast\":{\"message\":\"" + escaped + "\",\"kind\":\"success\"}}";
     }
 
     private void populate(String namespace, Model model) {
-        List<String> namespaces = List.of();
+        List<String> namespaces = fetchNamespaces(model);
+        String resolved = selectAndResolveNamespace(namespace, namespaces);
+        model.addAttribute("namespace", resolved);
+        fetchDeployments(resolved, model);
+    }
+
+    private List<String> fetchNamespaces(Model model) {
         try {
-            namespaces = namespaceService.listNamespaces();
+            List<String> namespaces = namespaceService.listNamespaces();
+            model.addAttribute("namespaces", namespaces);
+            return namespaces;
         } catch (RuntimeException e) {
             model.addAttribute("error", e.getMessage());
+            model.addAttribute("namespaces", List.of());
+            return List.of();
         }
-        model.addAttribute("namespaces", namespaces);
+    }
 
+    private String selectAndResolveNamespace(String namespace, List<String> namespaces) {
         if (namespace != null && !namespace.isBlank()) {
             namespaceSelection.select(namespace);
         }
-        String resolved = resolveNamespace(namespaceSelection.getSelected(), namespaces);
-        model.addAttribute("namespace", resolved);
+        return resolveNamespace(namespaceSelection.getSelected(), namespaces);
+    }
 
+    private void fetchDeployments(String namespace, Model model) {
         try {
-            model.addAttribute("deployments", deploymentService.listDeployments(resolved));
+            model.addAttribute("deployments", deploymentService.listDeployments(namespace));
         } catch (RuntimeException e) {
             model.addAttribute("error", e.getMessage());
         }
