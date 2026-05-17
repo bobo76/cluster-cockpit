@@ -36,7 +36,7 @@
 
 <div th:fragment="table" id="deployment-table"
      hx-get="/deployments" hx-include="#dep-ns-select"
-     hx-target="#deployment-table" hx-swap="outerHTML"
+     hx-target="#deployment-table" hx-swap="morph:outerHTML"
      hx-select="#deployment-table" hx-trigger="every 5s">
     <div th:if="${error}" class="error" th:text="${error}"></div>
 
@@ -53,7 +53,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="d : ${deployments}">
+        <tr th:each="d : ${deployments}" th:id="|dep-${d.namespace()}-${d.name()}|">
             <td th:if="${namespace == '*'}" th:text="${d.namespace()}"></td>
             <td th:text="${d.name()}"></td>
             <td><span class="status-pill" th:classappend="${d.statusClass()}" th:text="${d.ready()}"></span></td>

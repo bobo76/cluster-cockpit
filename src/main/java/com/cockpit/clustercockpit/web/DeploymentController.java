@@ -29,11 +29,13 @@ public class DeploymentController {
     @GetMapping
     public String list(@RequestParam(value = "namespace", required = false) String namespace,
                        @RequestHeader(value = "HX-Request", required = false) String hxRequest,
-                       Model model) {
+                       Model model,
+                       HttpServletResponse response) {
         if (hxRequest == null) {
             model.addAttribute("initialPath", "/deployments");
             return "index";
         }
+        response.setHeader("Cache-Control", "no-cache");
         populate(namespace, model);
         return "fragments/deployment-list :: page";
     }

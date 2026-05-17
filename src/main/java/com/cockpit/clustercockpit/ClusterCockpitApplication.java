@@ -26,7 +26,8 @@ public class ClusterCockpitApplication {
     @Bean
     public FilterRegistrationBean<ShallowEtagHeaderFilter> etagFilter() {
         var reg = new FilterRegistrationBean<>(new ShallowEtagHeaderFilter());
-        reg.addUrlPatterns("/pods", "/pods/*");
+        reg.addUrlPatterns("/pods", "/pods/*", "/helmreleases", "/helmreleases/*",
+            "/deployments", "/deployments/*");
         return reg;
     }
 
