@@ -3,6 +3,7 @@ package com.cockpit.clustercockpit.web;
 import com.cockpit.clustercockpit.kube.NamespaceSelectionService;
 import com.cockpit.clustercockpit.kube.NamespaceService;
 import com.cockpit.clustercockpit.kube.PodService;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -23,11 +24,13 @@ public class PodController {
     @GetMapping("/pods")
     public String pods(@RequestParam(value = "namespace", required = false) String namespace,
                        @RequestHeader(value = "HX-Request", required = false) String hxRequest,
-                       Model model) {
+                       Model model,
+                       HttpServletResponse response) {
         if (hxRequest == null) {
             model.addAttribute("initialPath", "/pods");
             return "index";
         }
+        response.setHeader("Cache-Control", "no-cache");
         List<String> namespaces = List.of();
         try {
             namespaces = namespaceService.listNamespaces();
