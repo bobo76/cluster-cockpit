@@ -618,10 +618,11 @@
                 syncNav();
             }
             var btn = document.getElementById('pause-refresh-btn');
-            if (btn && window.__podRefreshPaused) {
+            if (btn && window.__refreshPaused) {
                 btn.textContent = 'Resume';
             }
-            if (e.target && e.target.id === 'pod-table' && !window.__podRefreshPaused) {
+            var pollTableIds = ['pod-table', 'helmrelease-table', 'deployment-table'];
+            if (e.target && pollTableIds.includes(e.target.id) && !window.__refreshPaused) {
                 var hb = document.querySelector('.heartbeat');
                 if (hb) {
                     hb.classList.add('reset');
@@ -642,7 +643,8 @@
             }
         });
         document.body.addEventListener('htmx:beforeRequest', function (e) {
-            if (window.__podRefreshPaused && e.target && e.target.id === 'pod-table') {
+            var pollTableIds = ['pod-table', 'helmrelease-table', 'deployment-table'];
+            if (window.__refreshPaused && e.target && pollTableIds.includes(e.target.id)) {
                 e.preventDefault();
             }
         });
@@ -662,13 +664,13 @@
             var p = document.getElementById('pod-detail-panel');
             if (p) { p.classList.remove('open'); p.innerHTML = ''; }
         };
-        window.togglePodRefresh = function (btn) {
-            window.__podRefreshPaused = !window.__podRefreshPaused;
-            btn.textContent = window.__podRefreshPaused ? 'Resume' : 'Pause';
+        window.toggleRefresh = function (btn) {
+            window.__refreshPaused = !window.__refreshPaused;
+            btn.textContent = window.__refreshPaused ? 'Resume' : 'Pause';
             var hb = document.querySelector('.heartbeat');
             if (hb) {
-                hb.classList.toggle('paused', window.__podRefreshPaused);
-                if (!window.__podRefreshPaused) {
+                hb.classList.toggle('paused', window.__refreshPaused);
+                if (!window.__refreshPaused) {
                     hb.classList.add('reset');
                     hb.offsetHeight;
                     hb.classList.remove('reset');
