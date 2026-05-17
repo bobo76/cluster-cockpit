@@ -14,6 +14,8 @@
             <span class="heartbeat" title="auto-refresh every 5s"></span>
         </span>
         <span class="spacer"></span>
+        <button type="button" class="action-btn" id="pause-refresh-btn"
+                onclick="toggleRefresh(this)">Pause</button>
         <label>
             Namespace <span class="kbd" title="Press / to focus namespace">/</span>
             <select name="namespace" id="hr-ns-select"
@@ -36,7 +38,7 @@
 
 <div th:fragment="table" id="helmrelease-table"
      hx-get="/helmreleases" hx-include="#hr-ns-select"
-     hx-target="#helmrelease-table" hx-swap="outerHTML"
+     hx-target="#helmrelease-table" hx-swap="morph:outerHTML"
      hx-select="#helmrelease-table" hx-trigger="every 5s">
     <div th:if="${error}" class="error" th:text="${error}"></div>
 
@@ -54,7 +56,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="r : ${releases}">
+        <tr th:each="r : ${releases}" th:id="|hr-${r.namespace()}-${r.name()}|">
             <td th:if="${namespace == '*'}" th:text="${r.namespace()}"></td>
             <td th:text="${r.name()}"></td>
             <td th:text="${r.chart()}"></td>

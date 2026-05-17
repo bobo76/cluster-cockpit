@@ -8,9 +8,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import org.springframework.web.filter.ShallowEtagHeaderFilter;
 
 @SpringBootApplication
 @EnableConfigurationProperties({ClusterConnectionsProperties.class, NamespaceProperties.class})
@@ -18,6 +21,14 @@ public class ClusterCockpitApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ClusterCockpitApplication.class, args);
+    }
+
+    @Bean
+    public FilterRegistrationBean<ShallowEtagHeaderFilter> etagFilter() {
+        var reg = new FilterRegistrationBean<>(new ShallowEtagHeaderFilter());
+        reg.addUrlPatterns("/pods", "/pods/*", "/helmreleases", "/helmreleases/*",
+            "/deployments", "/deployments/*");
+        return reg;
     }
 
     @Component

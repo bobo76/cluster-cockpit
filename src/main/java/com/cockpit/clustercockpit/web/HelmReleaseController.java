@@ -26,11 +26,13 @@ public class HelmReleaseController {
     @GetMapping
     public String list(@RequestParam(value = "namespace", required = false) String namespace,
                        @RequestHeader(value = "HX-Request", required = false) String hxRequest,
-                       Model model) {
+                       Model model,
+                       HttpServletResponse response) {
         if (hxRequest == null) {
             model.addAttribute("initialPath", "/helmreleases");
             return "index";
         }
+        response.setHeader("Cache-Control", "no-cache");
         populate(namespace, model);
         return "fragments/helmrelease-list :: page";
     }
@@ -79,10 +81,7 @@ public class HelmReleaseController {
         }
         model.addAttribute("namespaces", namespaces);
 
-        if (namespace != null && !namespace.isBlank()) {
-            namespaceSelection.select(namespace);
-        }
-        String resolved = resolveNamespace(namespaceSelection.getSelected(), namespaces);
+        String resolved = namespaceSelection.selectAndResolve(namespace, namespaces);
         model.addAttribute("namespace", resolved);
 
         try {
@@ -92,14 +91,4 @@ public class HelmReleaseController {
         }
     }
 
-    private String resolveNamespace(String requested, List<String> namespaces) {
-        if (requested != null && !requested.isBlank()
-            && ("*".equals(requested) || namespaces.contains(requested))) {
-            return requested;
-        }
-        if (namespaces.contains("default")) {
-            return "default";
-        }
-        return namespaces.isEmpty() ? "*" : namespaces.getFirst();
-    }
 }

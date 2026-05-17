@@ -29,11 +29,13 @@ public class DeploymentController {
     @GetMapping
     public String list(@RequestParam(value = "namespace", required = false) String namespace,
                        @RequestHeader(value = "HX-Request", required = false) String hxRequest,
-                       Model model) {
+                       Model model,
+                       HttpServletResponse response) {
         if (hxRequest == null) {
             model.addAttribute("initialPath", "/deployments");
             return "index";
         }
+        response.setHeader("Cache-Control", "no-cache");
         populate(namespace, model);
         return "fragments/deployment-list :: page";
     }
@@ -88,9 +90,8 @@ public class DeploymentController {
 
     private void populate(String namespace, Model model) {
         List<String> namespaces = fetchNamespaces(model);
-        String resolved = selectAndResolveNamespace(namespace, namespaces);
-        model.addAttribute("namespace", resolved);
-        fetchDeployments(resolved, model);
+        model.addAttribute("namespace", namespaceSelection.selectAndResolve(namespace, namespaces));
+        fetchDeployments(namespaceSelection.getSelected(), model);
     }
 
     private List<String> fetchNamespaces(Model model) {
@@ -105,13 +106,6 @@ public class DeploymentController {
         }
     }
 
-    private String selectAndResolveNamespace(String namespace, List<String> namespaces) {
-        if (namespace != null && !namespace.isBlank()) {
-            namespaceSelection.select(namespace);
-        }
-        return resolveNamespace(namespaceSelection.getSelected(), namespaces);
-    }
-
     private void fetchDeployments(String namespace, Model model) {
         try {
             model.addAttribute("deployments", deploymentService.listDeployments(namespace));
@@ -120,14 +114,4 @@ public class DeploymentController {
         }
     }
 
-    private String resolveNamespace(String requested, List<String> namespaces) {
-        if (requested != null && !requested.isBlank()
-            && ("*".equals(requested) || namespaces.contains(requested))) {
-            return requested;
-        }
-        if (namespaces.contains("default")) {
-            return "default";
-        }
-        return namespaces.isEmpty() ? "*" : namespaces.getFirst();
-    }
 }

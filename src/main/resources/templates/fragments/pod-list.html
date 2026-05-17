@@ -15,7 +15,7 @@
         </span>
         <span class="spacer"></span>
         <button type="button" class="action-btn" id="pause-refresh-btn"
-                onclick="togglePodRefresh(this)">Pause</button>
+                onclick="toggleRefresh(this)">Pause</button>
         <label>
             Namespace <span class="kbd" title="Press / to focus namespace">/</span>
             <select name="namespace"
@@ -35,7 +35,7 @@
 
     <div id="pod-table"
          hx-get="/pods" hx-include="[name=namespace]"
-         hx-target="#pod-table" hx-swap="outerHTML"
+         hx-target="#pod-table" hx-swap="morph:outerHTML"
          hx-select="#pod-table" hx-trigger="every 5s">
         <div th:replace="~{fragments/pod-list :: table}"></div>
     </div>
@@ -57,7 +57,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="p : ${pods}">
+        <tr th:each="p : ${pods}" th:id="|pod-${p.namespace()}-${p.name()}|">
             <td>
                 <button type="button" class="action-btn icon"
                         title="Details"
