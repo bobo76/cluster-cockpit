@@ -81,10 +81,7 @@ public class HelmReleaseController {
         }
         model.addAttribute("namespaces", namespaces);
 
-        if (namespace != null && !namespace.isBlank()) {
-            namespaceSelection.select(namespace);
-        }
-        String resolved = resolveNamespace(namespaceSelection.getSelected(), namespaces);
+        String resolved = namespaceSelection.selectAndResolve(namespace, namespaces);
         model.addAttribute("namespace", resolved);
 
         try {
@@ -94,14 +91,4 @@ public class HelmReleaseController {
         }
     }
 
-    private String resolveNamespace(String requested, List<String> namespaces) {
-        if (requested != null && !requested.isBlank()
-            && ("*".equals(requested) || namespaces.contains(requested))) {
-            return requested;
-        }
-        if (namespaces.contains("default")) {
-            return "default";
-        }
-        return namespaces.isEmpty() ? "*" : namespaces.getFirst();
-    }
 }

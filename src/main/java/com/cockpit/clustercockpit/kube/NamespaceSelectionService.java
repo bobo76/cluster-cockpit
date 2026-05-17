@@ -1,6 +1,7 @@
 package com.cockpit.clustercockpit.kube;
 
 import jakarta.annotation.PostConstruct;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,5 +28,17 @@ public class NamespaceSelectionService {
         if (namespace != null && !namespace.isBlank()) {
             this.selected = namespace;
         }
+    }
+
+    public String selectAndResolve(String requested, List<String> available) {
+        select(requested);
+        if (selected != null && !selected.isBlank()
+                && ("*".equals(selected) || available.contains(selected))) {
+            return selected;
+        }
+        if (available.contains("default")) {
+            return "default";
+        }
+        return available.isEmpty() ? "*" : available.getFirst();
     }
 }
